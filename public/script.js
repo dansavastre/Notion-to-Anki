@@ -33,15 +33,36 @@ async function getAllPageIds() {
     }
 }
 
-async function getPage(pageId) {
+async function getPageProperties(pageId) {
     try {
         // const pageId = document.getElementById('pageIdInput').value;
         const response = await fetch(`/get-page/${pageId}`);
         const page = await response.json();
 
-        // Extract title and properties
+        // Extract properties
         const pageTitle = page.properties.Name.title[0]?.plain_text || 'Untitled';
         const cardCount = parseInt(page.properties.Cards.number || 0);
+
+        // Assume page.properties is the provided properties object
+
+        // Extract Courses property
+        const coursesProperty = page.properties['📑 Courses'];
+        // const coursesValue = coursesProperty ? coursesProperty.rollup : null;
+
+        // Extract Vak property
+        const vakProperty = page.properties.Vak;
+        // const vakValue = vakProperty ? vakProperty.rollup : null;
+
+
+        // Extract Courses
+        const coursesValue = coursesProperty ? coursesProperty.rollup.array : null;
+        // Extract Vak
+        const vakValue = vakProperty ? vakProperty.rollup.array : null;
+
+        // Now you can use coursesValue and vakValue in your code
+        console.log('Courses:', coursesValue);
+        console.log('Vak:', vakValue);
+
 
         return { pageTitle, cardCount };
     } catch (error) {
@@ -67,7 +88,7 @@ async function getAllContent(pageId) {
         console.log("Flashcards: ", flashcards);
 
         // Get page properties (Title, cardCount)
-        const props = await getPage(pageId);
+        const props = await getPageProperties(pageId);
         return flashcards;
     } catch (error) {
         console.error('Error fetching content:', error);
@@ -190,25 +211,34 @@ async function getNotionPages() {
         console.log("Page ids: ", pageIds)
 
         for (const pageId of pageIds) {
+            const row = document.createElement('tr');
+
+            // Checkbox cell
+            const checkboxCell = document.createElement('td');
+            checkboxCell.className = 'checkbox-cell';
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.id = pageId;
-            checkbox.className = 'page-checkbox';
+            checkboxCell.appendChild(checkbox);
+            row.appendChild(checkboxCell);
 
-            // const flashcards = await getAllContent(pageId);
-            // console.log(flashcards);
+            // Get page properties from notion
+            pageProperties = await getPageProperties(pageId);
 
-            props = await getPage(pageId);
-            console.log("Page properties: ", props);
+            // Page title cell
+            const titleCell = document.createElement('td');
+            titleCell.textContent = pageProperties.pageTitle;
+            row.appendChild(titleCell);
 
-            const label = document.createElement('label');
-            label.htmlFor = pageId;
-            label.textContent = `${props.pageTitle} with ${props.cardCount} flashcards`;
+            // Card count cell
+            const countCell = document.createElement('td');
+            countCell.textContent = pageProperties.cardCount;
+            row.appendChild(countCell);
 
-            notionPagesContainer.appendChild(checkbox);
-            notionPagesContainer.appendChild(label);
-            notionPagesContainer.appendChild(document.createElement('br'));
+            document.getElementById('notionPages').appendChild(row);
         }
+
+
     } catch (error) {
         console.error('Error getting Notion pages:', error);
     }
@@ -226,7 +256,7 @@ async function generateFlashcards() {
 
         for (const pageId of selectedPageIds) {
             const flashcards = await getAllContent(pageId);
-            props = await getPage(pageId);
+            props = await getPageProperties(pageId);
             sendToAnki(props.pageTitle, props.cardCount, flashcards);
         }
 

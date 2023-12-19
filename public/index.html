@@ -3,16 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!--    <link rel="stylesheet" href="styles.css">-->
+    <link rel="stylesheet" href="style.css">
     <title>Notion to Anki Flashcards</title>
 </head>
 <body>
 <div class="container">
     <h1>Notion to Anki Flashcards</h1>
-    <button onclick="getNotionPages()">Get Notion Pages</button>
-    <button onclick="goToSettings()">Go to Settings</button>
-    <div id="notionPages"></div>
-    <button onclick="generateFlashcards()">Generate Flashcards</button>
+    <button class="button-54" role="button" onclick="getNotionPages()">Get Notion Pages</button>
+    <button class="button-54" role="button" onclick="generateFlashcards()">Generate Flashcards</button>
+    <button class="button-54" role="button" onclick="goToSettings()">Settings</button>
+
+    <table>
+        <thead>
+        <tr>
+            <th class="checkbox-cell"></th>
+            <th>Page Title</th>
+            <th>Card Count</th>
+        </tr>
+        </thead>
+        <tbody id="notionPages">
+        <!-- Pages will be dynamically added here -->
+        </tbody>
+    </table>
+
 </div>
 <script src="script.js"></script>
 </body>

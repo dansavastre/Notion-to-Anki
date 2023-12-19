@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
     <title>Notion Settings</title>
 </head>
 <body>
@@ -11,18 +12,18 @@
 
 <label for="notionSecret">Notion Secret:</label>
 <input type="text" id="notionSecretInput" placeholder="Enter Notion Secret">
-<button onclick="setNotionSecret()">Set Notion Secret</button>
+<button class="button-54" role="button" onclick="setNotionSecret()">Set Notion Secret</button>
 
 <br>
 
 <label for="databaseId">Database ID:</label>
 <input type="text" id="databaseIdInput" placeholder="Enter Database ID">
-<button onclick="setDatabaseId()">Set Database ID</button>
+<button class="button-54" role="button" onclick="setDatabaseId()">Set Database ID</button>
 
 <br>
 
 <!-- Button to go to the settings page -->
-<button onclick="goToIndex()">Back</button>
+<button class="button-54" role="button" onclick="goToIndex()">Back</button>
 
 <script>
     // Function to set Notion Secret
