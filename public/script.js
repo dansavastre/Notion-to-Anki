@@ -161,13 +161,14 @@ async function sendToAnki(deckName, cardCount, flashcards) {
                         "Back": `${answer}`,
                     },
                 };
-                console.log("Note: ", addNoteParams);
+                // console.log("Note: ", addNoteParams);
                 await invoke('addNote', 6, { note: addNoteParams });
                 // console.log(`Flashcard added: ${question}`);
                 existingQuestions.push(question);
-            } else {
-                console.log(`Flashcard already exists: ${question}`);
             }
+            // else {
+                // console.log(`Flashcard already exists: ${question}`);
+            // }
         }
     } catch (error) {
         console.error('Error sending flashcards to Anki:', error);

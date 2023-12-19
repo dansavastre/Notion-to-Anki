@@ -13,7 +13,7 @@ let notion = new Client({
   auth: process.env.NOTION_SECRET,
 });
 
-const n2m = new NotionToMarkdown({ notionClient: notion });
+let n2m = new NotionToMarkdown({ notionClient: notion });
 
 
 // Serve static files from the "public" directory
@@ -48,10 +48,8 @@ async function getPageContent(pageId) {
   const mdblocks = await n2m.pageToMarkdown(pageId, 2);
   // const mdString = n2m.toMarkdownString(mdblocks);
   // console.log(mdString.parent);
-  console.log(mdblocks);
+  console.log("MD blocks: ", mdblocks);
 
-  // Convert Notion block data to Markdown using notion-to-md
-  // return mdString.parent;
   return mdblocks;
 }
 
@@ -69,6 +67,8 @@ app.post('/update-settings', (req, res) => {
         notion = new Client({
             auth: process.env.NOTION_SECRET,
         });
+
+        n2m = new NotionToMarkdown({ notionClient: notion });
 
         res.json({ success: true });
     } catch (error) {
