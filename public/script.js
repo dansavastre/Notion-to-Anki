@@ -64,7 +64,7 @@ async function getAllContent(pageId) {
                 flashcards.push({question, answer});
             }
         }
-        console.log(flashcards);
+        console.log("Flashcards: ", flashcards);
 
         // Get page properties (Title, cardCount)
         const props = await getPage(pageId);
@@ -111,12 +111,12 @@ async function invoke(action, version, params = {}) {
         const result = await response.json();
 
         // Log the entire response for debugging
-        console.log(`Anki Connect Response for '${action}':`, result);
+        // console.log(`Anki Connect Response for '${action}':`, result);
 
         // Check if the action is 'addNote' and log the note ID for debugging
-        if (action === 'addNote') {
-            console.log(`Added note ID: ${result.result}`);
-        }
+        // if (action === 'addNote') {
+        //     console.log(`Added note ID: ${result.result}`);
+        // }
 
         return result.result;
     } catch (error) {
@@ -130,7 +130,7 @@ async function sendToAnki(deckName, cardCount, flashcards) {
     try {
         const deckNames = await invoke('deckNames', 6);
 
-        console.log(`Sending flashcards to Anki for Deck: ${deckName}`);
+        console.log(`Sending flashcards to Deck: ${deckName}`);
         console.log('Flashcards to be sent:', flashcards);
 
         // Check if the deck exists
@@ -144,7 +144,7 @@ async function sendToAnki(deckName, cardCount, flashcards) {
         const notes = await invoke('findNotes', 6, { query: `deck:"${deckName}"` });
         const notesInfo = await invoke('notesInfo', 6, { notes });
         const existingQuestions = notesInfo.map(note => note.fields.Front);
-        console.log("Existing questions: " + existingQuestions);
+        console.log("Existing questions: ", existingQuestions);
 
         // Loop over flashcards and send them to Anki
         for (const flashcard of flashcards) {
@@ -161,9 +161,9 @@ async function sendToAnki(deckName, cardCount, flashcards) {
                         "Back": `${answer}`,
                     },
                 };
-                console.log(addNoteParams);
+                console.log("Note: ", addNoteParams);
                 await invoke('addNote', 6, { note: addNoteParams });
-                console.log(`Flashcard added: ${question}`);
+                // console.log(`Flashcard added: ${question}`);
                 existingQuestions.push(question);
             } else {
                 console.log(`Flashcard already exists: ${question}`);
@@ -180,13 +180,13 @@ async function sendToAnki(deckName, cardCount, flashcards) {
 
 async function getNotionPages() {
     try {
-        console.log(notionSecret);
-        console.log(databaseId);
+        // console.log(notionSecret);
+        // console.log(databaseId);
         const notionPagesContainer = document.getElementById('notionPages');
         notionPagesContainer.innerHTML = ''; // Clear existing content
 
         const pageIds = await getAllPageIds();
-        console.log(pageIds)
+        console.log("Page ids: ", pageIds)
 
         for (const pageId of pageIds) {
             const checkbox = document.createElement('input');
@@ -198,7 +198,7 @@ async function getNotionPages() {
             // console.log(flashcards);
 
             props = await getPage(pageId);
-            console.log(props);
+            console.log("Page properties: ", props);
 
             const label = document.createElement('label');
             label.htmlFor = pageId;
@@ -216,23 +216,18 @@ async function getNotionPages() {
 async function generateFlashcards() {
     try {
         const selectedPageIds = getSelectedPageIds();
-        console.log(selectedPageIds);
+        console.log("Selected pages: ", selectedPageIds);
 
         if (selectedPageIds.length === 0) {
             alert('Please select at least one page.');
             return;
         }
 
-        const allFlashcards = [];
-
         for (const pageId of selectedPageIds) {
             const flashcards = await getAllContent(pageId);
             props = await getPage(pageId);
             sendToAnki(props.pageTitle, props.cardCount, flashcards);
         }
-
-        // Now you have all the flashcards from selected pages
-        console.log(allFlashcards);
 
         alert('Flashcards sent to Anki successfully!');
     } catch (error) {
