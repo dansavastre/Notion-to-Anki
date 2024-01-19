@@ -10,7 +10,7 @@ Visit [Notion Integrations](https://www.notion.so/my-integrations) and create a 
 
 Find the Notion database you want to use, and extract the ID from the URL. For example:
 
-[https://www.notion.so/dansavastre/**bf286c62528946bfbe38146bc7006b16**?v=206d7ee703744ac488d760192339804e](https://www.notion.so/bf286c62528946bfbe38146bc7006b16?pvs=21)
+[https://www.notion.so/username/bf286c62521234bfbe90656ab7856b25?v=206d7ee703744ac488d760192339804e](https://www.notion.so/bf286c62528946bfbe38146bc7006b16?pvs=21)
 
 ### 3. Give Integration Access to the Database
 
@@ -33,3 +33,8 @@ In Anki, go to Tools → Add-ons → Click on Anki Connect, and then click "Conf
     "http://localhost"
   ]
 }
+```
+
+## NOTION DATABASE SETUP
+
+![Alt text](/Flashcards.png?raw=true "Flashcards Database")

@@ -146,6 +146,40 @@ async function invoke(action, version, params = {}) {
     }
 }
 
+function formatText(text) {
+    const lines = text.split('\n');
+    let html = '';
+    let currentIndentLevel = 0;
+
+    for (const line of lines) {
+        const match = line.match(/^(\s*)- (.+)$/);
+
+        if (match) {
+            const indent = match[1].length / 4; // Assuming 4 spaces per level
+            const trimmedLine = match[2];
+
+            if (indent === currentIndentLevel) {
+                // Same level
+                html += `${'<li>' + trimmedLine + '</li>'}\n`;
+            } else if (indent > currentIndentLevel) {
+                // Increased indentation, start a new sublist
+                html += '<ul>\n';
+                currentIndentLevel = indent;
+                html += `${'<li>' + trimmedLine + '</li>'}\n`;
+            } else {
+                // Decreased indentation, close current sublist(s)
+                html += '</ul>\n'.repeat(currentIndentLevel - indent);
+                currentIndentLevel = indent;
+                html += `${'<li>' + trimmedLine + '</li>'}\n`;
+            }
+        }
+    }
+
+    // Close any remaining open sublists
+    html += '</ul>\n'.repeat(currentIndentLevel);
+
+    return html;
+}
 
 async function sendToAnki(deckName, cardCount, flashcards) {
     try {
@@ -170,6 +204,8 @@ async function sendToAnki(deckName, cardCount, flashcards) {
         // Loop over flashcards and send them to Anki
         for (const flashcard of flashcards) {
             const { question, answer } = flashcard;
+            // let parsedAnswer = answer.replace("\n", "<br>");
+            console.log("updated ans: ", formatText(answer));
 
             // Check if the question already exists in the deck
             if (!existingQuestions.includes(question)) {
@@ -179,7 +215,7 @@ async function sendToAnki(deckName, cardCount, flashcards) {
                     "modelName": 'Basic',
                     "fields": {
                         "Front": `${question}`,
-                        "Back": `${answer}`,
+                        "Back": `${formatText(answer)}`,
                     },
                 };
                 // console.log("Note: ", addNoteParams);
@@ -200,10 +236,33 @@ async function sendToAnki(deckName, cardCount, flashcards) {
 
 // ------------------------------------------------------------------------------------
 
+// Function to update server settings
+async function updateServerSettings() {
+    const notionSecret = localStorage.getItem('notionSecret');
+    const databaseId = localStorage.getItem('databaseId');
+
+    try {
+        const response = await fetch('/update-settings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ notionSecret, databaseId }),
+        });
+
+        const result = await response.json();
+        console.log(result);
+    } catch (error) {
+        console.error('Error updating server settings:', error);
+    }
+}
+
 async function getNotionPages() {
     try {
         // console.log(notionSecret);
         // console.log(databaseId);
+        await updateServerSettings();
+
         const notionPagesContainer = document.getElementById('notionPages');
         notionPagesContainer.innerHTML = ''; // Clear existing content
 
@@ -215,7 +274,7 @@ async function getNotionPages() {
 
             // Checkbox cell
             const checkboxCell = document.createElement('td');
-            checkboxCell.className = 'checkbox-cell';
+            checkboxCell.className = 'page-checkbox';
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.id = pageId;
@@ -268,10 +327,13 @@ async function generateFlashcards() {
 
 function getSelectedPageIds() {
     const selectedPageIds = [];
-    const checkboxes = document.querySelectorAll('.page-checkbox');
+
+    // Select all checkboxes with the class 'page-checkbox'
+    const checkboxes = document.querySelectorAll('.page-checkbox input[type="checkbox"]');
 
     checkboxes.forEach((checkbox) => {
         if (checkbox.checked) {
+            // If the checkbox is checked, add its id to the selectedPageIds array
             selectedPageIds.push(checkbox.id);
         }
     });
