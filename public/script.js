@@ -60,8 +60,8 @@ async function getPageProperties(pageId) {
         const vakValue = vakProperty ? vakProperty.rollup.array : null;
 
         // Now you can use coursesValue and vakValue in your code
-        console.log('Courses:', coursesValue);
-        console.log('Vak:', vakValue);
+        // console.log('Courses:', coursesValue);
+        // console.log('Vak:', vakValue);
 
 
         return { pageTitle, cardCount };
@@ -205,7 +205,7 @@ async function sendToAnki(deckName, cardCount, flashcards) {
         for (const flashcard of flashcards) {
             const { question, answer } = flashcard;
             // let parsedAnswer = answer.replace("\n", "<br>");
-            console.log("updated ans: ", formatText(answer));
+            // console.log("updated ans: ", formatText(answer));
 
             // Check if the question already exists in the deck
             if (!existingQuestions.includes(question)) {
