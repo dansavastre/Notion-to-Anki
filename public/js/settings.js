@@ -35,5 +35,5 @@ async function updateServerSettings() {
 
 function goToIndex() {
     // Redirect to the settings page
-    window.location.href = '/index.html';
+    window.location.href = '/notion-to-anki';
 }

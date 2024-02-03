@@ -16,7 +16,7 @@ const databaseId = localStorage.getItem('databaseId');
 
 function goToSettings() {
     // Redirect to the settings page
-    window.location.href = '/settings.html';  // Assuming your settings page is named "settings.html"
+    window.location.href = '/settings';
 }
 
 
@@ -266,7 +266,8 @@ async function getNotionPages() {
         const notionPagesContainer = document.getElementById('notionPages');
         notionPagesContainer.innerHTML = ''; // Clear existing content
 
-        const pageIds = await getAllPageIds();
+        const response = await getAllPageIds();
+        const pageIds = response.results.map(page => page.id);
         console.log("Page ids: ", pageIds)
 
         for (const pageId of pageIds) {

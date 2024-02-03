@@ -35,6 +35,10 @@ app.get('/notion-to-anki', (req, res) => {
     res.sendFile(join(__dirname, '..', 'public', 'html', 'notion-to-anki.html'));
 });
 
+app.get('/settings', (req, res) => {
+    res.sendFile(join(__dirname, '..', 'public', 'html', 'settings.html'));
+});
+
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
