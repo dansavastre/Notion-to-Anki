@@ -259,8 +259,8 @@ async function updateServerSettings() {
 
 async function getNotionPages() {
     try {
-        // console.log(notionSecret);
-        // console.log(databaseId);
+        console.log(notionSecret);
+        console.log(databaseId);
         await updateServerSettings();
 
         const notionPagesContainer = document.getElementById('notionPages');
