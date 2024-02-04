@@ -6,12 +6,12 @@ function getNotionSecret() {
 }
 
 // Function to get Database ID from local storage
-function getDatabaseId() {
-    return localStorage.getItem('databaseId');
+function getFlashcardsId() {
+    return localStorage.getItem('flashcardsId');
 }
 
 const notionSecret = localStorage.getItem('notionSecret');
-const databaseId = localStorage.getItem('databaseId');
+const flashcardsId = localStorage.getItem('flashcardsId');
 
 
 function goToSettings() {
@@ -22,9 +22,9 @@ function goToSettings() {
 
 // -------------- Notion ------------------------------
 
-async function getAllPageIds() {
+async function getAllPageIds(databaseId) {
     try {
-        const response = await fetch('/get-page-ids');
+        const response = await fetch(`/get-page-ids/${databaseId}`);
         return await response.json();
 
         // document.getElementById('pageIds').innerText = 'Page IDs: ' + JSON.stringify(pageIds);
@@ -259,14 +259,14 @@ async function updateServerSettings() {
 
 async function getNotionPages() {
     try {
-        console.log(notionSecret);
-        console.log(databaseId);
+        // console.log(notionSecret);
+        // console.log(flashcardsId);
         await updateServerSettings();
 
         const notionPagesContainer = document.getElementById('notionPages');
         notionPagesContainer.innerHTML = ''; // Clear existing content
 
-        const response = await getAllPageIds();
+        const response = await getAllPageIds(getFlashcardsId());
         const pageIds = response.results.map(page => page.id);
         console.log("Page ids: ", pageIds)
 

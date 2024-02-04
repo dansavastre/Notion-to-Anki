@@ -1,9 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const { updateSettings, getAllPageIds, getPageContent,
-        getPage, uploadFinanceCSV, proxyAnkiConnect } = require('./routes/routes');
-const { parseCSV } = require('./routes/csvParser');
+        getPage, sendPage, uploadFinanceCSV, proxyAnkiConnect, getCategories } = require('./routes/routes');
+const rateLimiter = require('./rateLimiter');
 const {join} = require("path");
+const csvParserRoute = require("csv-parser");
 
 const app = express();
 const port = 3000;
@@ -12,15 +13,19 @@ const port = 3000;
 app.use(express.static('public'));
 app.use(express.json());
 app.use(cors());
+app.use('/csv-parser', csvParserRoute);
 
 
 app.post('/update-settings', updateSettings);
-app.get('/get-page-ids', getAllPageIds);
+app.get('/get-page-ids/:databaseId', getAllPageIds);
 app.get('/get-page-content/:pageId', getPageContent);
 app.get('/get-page/:pageId', getPage);
+app.post('/add-page', sendPage);
 app.post('/anki-connect', proxyAnkiConnect);
-app.post('/upload-finance-csv', uploadFinanceCSV);
 
+
+// // New route for fetching categories
+// app.get('/api/get-all-categories', getCategories);
 
 // Routes for each HTML page
 app.get('/', (req, res) => {
@@ -38,6 +43,9 @@ app.get('/notion-to-anki', (req, res) => {
 app.get('/settings', (req, res) => {
     res.sendFile(join(__dirname, '..', 'public', 'html', 'settings.html'));
 });
+
+
+
 
 
 app.listen(port, () => {

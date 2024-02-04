@@ -6,16 +6,31 @@ function setNotionSecret() {
 }
 
 // Function to set Database ID
-function setDatabaseId() {
-    const databaseId = document.getElementById('databaseIdInput').value;
-    localStorage.setItem('databaseId', databaseId);
+function setFlashcardsId() {
+    const databaseId = document.getElementById('flashcardsIdInput').value;
+    localStorage.setItem('flashcardsId', databaseId);
     updateServerSettings();
 }
+
+function setCategoriesId() {
+    const categoriesId = document.getElementById('categoriesIdInput').value;
+    localStorage.setItem('categoriesId', categoriesId);
+    updateServerSettings();
+}
+
+function setFinanceId() {
+    const financeId = document.getElementById('financeIdInput').value;
+    localStorage.setItem('financeId', financeId);
+    updateServerSettings();
+}
+
 
 // Function to update server settings
 async function updateServerSettings() {
     const notionSecret = localStorage.getItem('notionSecret');
-    const databaseId = localStorage.getItem('databaseId');
+    const flashcardsId = localStorage.getItem('flashcardsId');
+    const categoriesId = localStorage.getItem('categoriesId');
+    const financeId = localStorage.getItem('financeId');
 
     try {
         const response = await fetch('/update-settings', {
@@ -23,7 +38,7 @@ async function updateServerSettings() {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ notionSecret, databaseId }),
+            body: JSON.stringify({ notionSecret, flashcardsId, categoriesId, financeId }),
         });
 
         const result = await response.json();

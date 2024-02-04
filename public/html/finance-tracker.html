@@ -11,7 +11,9 @@
 
     <h1>Notion Finance Tracker</h1>
 
-    <form id="uploadForm" enctype="multipart/form-data">
+    <button class="button-54" role="button" onclick="getCategories()">Get Categories</button>
+
+    <form id="uploadForm" enctype="multipart/form-data" method="POST">
         <input type="file" name="csvFile" id="csvFile" accept=".csv">
         <button type="button" onclick="parseAndSendToNotion()">Parse and Send to Notion</button>
     </form>

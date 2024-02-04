@@ -13,12 +13,14 @@ let n2m = new NotionToMarkdown({ notionClient: notion });
 
 
 async function updateSettings(req, res) {
-    const { notionSecret, databaseId } = req.body;
+    const { notionSecret, flashcardsId, categoriesId, financeId } = req.body;
 
     try {
         // Update server-side environment variables or configuration with new values
         process.env.NOTION_SECRET = notionSecret;
-        process.env.FLASHCARDS_DB = databaseId;
+        process.env.FLASHCARDS_DB = flashcardsId;
+        process.env.CATEGORIES_DB = categoriesId;
+        process.env.FINANCE_DB = financeId;
 
         notion = new Client({
             auth: process.env.NOTION_SECRET,
@@ -37,7 +39,8 @@ async function getAllPageIds(req, res) {
     try {
         const { databaseId } = req.params;
         const response = await notion.databases.query({
-            database_id: process.env.FLASHCARDS_DB,
+            // database_id: process.env.FLASHCARDS_DB,
+            database_id : databaseId,
         });
         res.json(response);
     } catch (error) {
@@ -70,6 +73,25 @@ async function getPage(req, res) {
     }
 }
 
+async function sendPage(req, res) {
+    try {
+        const {databaseId, properties} = req.body;
+        console.log(databaseId, properties);
+        const response = await notion.pages.create({
+            parent: {
+                "type": "database_id",
+                database_id: databaseId,
+            },
+            properties: properties,
+        });
+
+        console.log("New page added: ", response);
+    } catch (error) {
+        console.error("Error creating new page: ", error.message);
+    }
+}
+
+
 async function proxyAnkiConnect(req, res) {
     const { action, version, params } = req.body;
 
@@ -90,15 +112,12 @@ async function proxyAnkiConnect(req, res) {
     }
 }
 
-async function uploadFinanceCSV(req, res) {
-    // ... (existing code)
-}
 
 module.exports = {
     updateSettings,
     getAllPageIds,
     getPageContent,
     getPage,
+    sendPage,
     proxyAnkiConnect,
-    uploadFinanceCSV
 };
