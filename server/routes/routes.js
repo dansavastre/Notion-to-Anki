@@ -1,8 +1,7 @@
 const { Client } = require('@notionhq/client');
 const { NotionToMarkdown } = require("notion-to-md");
 const fetch = require('cross-fetch');
-const { parse } = require("csv-parse");
-const fs = require("fs");
+const { RateLimiter } = require('../rateLimiter');
 require('dotenv').config();
 
 let notion = new Client({
@@ -10,6 +9,8 @@ let notion = new Client({
 });
 
 let n2m = new NotionToMarkdown({ notionClient: notion });
+
+const rateLimiter = new RateLimiter(3);
 
 
 async function updateSettings(req, res) {
@@ -74,20 +75,26 @@ async function getPage(req, res) {
 }
 
 async function sendPage(req, res) {
-    try {
-        const {databaseId, properties} = req.body;
-        console.log(databaseId, properties);
-        const response = await notion.pages.create({
-            parent: {
-                "type": "database_id",
-                database_id: databaseId,
-            },
-            properties: properties,
-        });
+    if (await rateLimiter.getToken()) {
+        try {
+            const {databaseId, properties} = req.body;
+            // console.log(databaseId, properties);
+            const response = await notion.pages.create({
+                parent: {
+                    "type": "database_id",
+                    database_id: databaseId,
+                },
+                properties: properties,
+            });
 
-        console.log("New page added: ", response);
-    } catch (error) {
-        console.error("Error creating new page: ", error.message);
+            // console.log("New page added: ", response);
+            res.send(response);
+        } catch (error) {
+            console.error("Error creating new page: ", error.message);
+    res.status(500).json({ error: 'Internal Server Error', message: error.message, stack: error.stack });
+        }
+    } else {
+        console.log('Rate limit exceeded. Waiting for tokens...');
     }
 }
 

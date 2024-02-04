@@ -6,30 +6,13 @@ function getFinanceId() {
     return localStorage.getItem('financeId');
 }
 
-function csvJSON(text, quoteChar = '"', delimiter = ',') {
-    const rows = text.split("\n");
-    const headers = rows[0].split(",");
-
-    const regex = new RegExp(`\\s*(${quoteChar})?(.*?)\\1\\s*(?:${delimiter}|$)`, 'gs');
-
-    const match = line => [...line.matchAll(regex)]
-        .map(m => m[2])
-        .slice(0, -1);
-
-    let lines = text.split('\n');
-    const heads = headers ?? match(lines.shift());
-    lines = lines.slice(1);
-
-    return lines.map(line => {
-        return match(line).reduce((acc, cur, i) => {
-            // replace blank matches with `null`
-            const val = cur.length <= 0 ? null : Number(cur) || cur;
-            const key = heads[i] ?? `{i}`;
-            return { ...acc, [key]: val };
-        }, {});
-    });
+function sendTransactions(transactions) {
+    for (const transaction of transactions) {
+        console.log(transaction);
+        console.log(transaction.income);
+        console.log(transaction.expense);
+    }
 }
-
 
 async function parseAndSendToNotion() {
     const fileInput = document.getElementById('csvFile');
@@ -41,17 +24,23 @@ async function parseAndSendToNotion() {
     }
 
     const reader = new FileReader();
+    const categories = await getCategories();
+    let props = [];
+    console.log("Categories", categories);
 
-    reader.onload = function (event) {
+    reader.onload = async function (event) {
         try {
             const csvText = event.target.result;
             const jsonData = csvJSON(csvText);
             console.log(jsonData);
 
             props = convertJsonToNotionProperties(jsonData);
+            console.log("Props ", props);
             for (const transaction of props) {
-                console.log(transaction);
-                addPage(getFinanceId(), transaction);
+                if (transaction.Name.title[0].text.content in groceries) {
+                    transaction.Category.relation[0].id = categories["Food & Groceries"];
+                }
+                console.log(transaction.Name.title[0].text.content);
             }
 
         } catch (error) {
@@ -80,9 +69,12 @@ async function getCategories() {
     const pageIds = response.results.map(page => page.id);
     console.log(pageIds);
 
+    let result = {};
     for (const pageid of pageIds) {
-        getPage(pageid);
+        const page = await getPage(pageid);
+        result[page.properties.Name.title[0].text.content] = pageId;
     }
+    return result;
 }
 
 async function getPage(pageId) {
@@ -115,6 +107,31 @@ async function addPage(databaseId, properties) {
 }
 
 
+// Parsing functions
+
+function csvJSON(text, quoteChar = '"', delimiter = ',') {
+    const rows = text.split("\n");
+    const headers = rows[0].split(",");
+
+    const regex = new RegExp(`\\s*(${quoteChar})?(.*?)\\1\\s*(?:${delimiter}|$)`, 'gs');
+
+    const match = line => [...line.matchAll(regex)]
+        .map(m => m[2])
+        .slice(0, -1);
+
+    let lines = text.split('\n');
+    const heads = headers ?? match(lines.shift());
+    lines = lines.slice(1);
+
+    return lines.map(line => {
+        return match(line).reduce((acc, cur, i) => {
+            // replace blank matches with `null`
+            const val = cur.length <= 0 ? null : Number(cur) || cur;
+            const key = heads[i] ?? `{i}`;
+            return { ...acc, [key]: val };
+        }, {});
+    });
+}
 
 function convertJsonToNotionProperties(jsonData) {
     return jsonData.map(transaction => {
@@ -164,43 +181,80 @@ function convertJsonToNotionProperties(jsonData) {
     });
 }
 
+function createNotionProperties(name, type, amount, date, categoryId, tags) {
+    return {
+        "Name": {
+            "title": [
+                {
+                    "text": {
+                        "content": name,
+                    }
+                }
+            ]
+        },
+        "Type": {
+            "select": {
+                "name": type
+            }
+        },
+        "Expense Amount": type === "Expense"
+            ? {
+                "number": amount,
+            }
+            : {
+                "number": 0,
+            },
+        "Income Amount": type === "Income"
+            ? {
+                "number": amount,
+            }
+            : {
+                "number": 0,
+            },
+        "Date": {
+            "date": {
+                "start": date,
+            }
+        },
+        "Category": {
+            "relation": [
+                {
+                    "id": categoryId,
+                }
+            ],
+            "has_more": false,
+        },
+    };
+}
 
-/*
-* {
-*   "object":"page",
-*   "id":"d3f94f66-97eb-4344-accc-d7a6161170d9",
-*   "created_time":"2024-02-03T10:08:00.000Z",
-*   "last_edited_time":"2024-02-04T11:49:00.000Z",
-*   "created_by":{
-*       "object":"user",
-*       "id":"4d3b1189-0601-4f59-bc44-6584852af4a5"
-*   },
-*   "last_edited_by":{
-*       "object":"user",
-*       "id":"4d3b1189-0601-4f59-bc44-6584852af4a5"
-*   },
-*   "cover":null,
-*   "icon":null,
-*   "parent":{
-*       "type":"database_id",
-*       "database_id":"7f6aca4d-0bd1-406b-bcc1-12e09e402422"
-*   },
-*   "archived":false,
-*   "properties":{
-*       "Type":{
-*           "id":"A%3BgP",
-*           "type":"multi_select",
-*           "multi_select":[{"id":"vw?|","name":"Income","color":"green"}]
-*       },
-*       "Date":{
-*           "id":"J%3E%5Bs",
-*           "type":"date",
-*           "date":{"start":"2024-01-25","end":null,"time_zone":null}
-*       },
-*       "Expense Amount":{
-*           "id":"%5DFic",
-*           "type":"number",
-*           "number":null
-*       },"Tags":{"id":"j%3DIb","type":"multi_select","multi_select":[]},"Income Amount":{"id":"ssP%5E","type":"number","number":480},"Category":{"id":"z%5DEj","type":"relation","relation":[{"id":"7511cfd0-e7b7-4142-82b5-98ab80bc1163"}],"has_more":false},"Name":{"id":"title","type":"title","title":[{"type":"text","text":{"content":"Salary","link":null},"annotations":{"bold":false,"italic":false,"strikethrough":false,"underline":false,"code":false,"color":"default"},"plain_text":"Salary","href":null}]}},"url":"https://www.notion.so/Salary-d3f94f6697eb4344acccd7a6161170d9","public_url":null,"request_id":"aed89170-b667-4ada-9690-f5c07d3e70f2"}
+function aggregateTransactionsByUniqueName(props) {
+    // const props = convertJsonToNotionProperties(jsonData);
 
-* */
+    // Create an object to store aggregated transactions by name
+    // const aggregatedTransactions = new Set(props.map(o => o.Name.title[0].text.content))
+    const aggregatedTransactions = {};
+
+    props.forEach(transaction => {
+        // Extract name from the transaction
+        const name = transaction.Name.title[0].text.content;
+
+        // If the name doesn't exist in the aggregatedTransactions object, create an entry
+        if (!aggregatedTransactions[name]) {
+            aggregatedTransactions[name] = {
+                income: 0,
+                expenses: 0,
+                other: transaction,
+            };
+        }
+
+        // Check if it's an income or expense and update the corresponding total
+        if (transaction.Type.select.name === 'Income') {
+            aggregatedTransactions[name].income += transaction['Income Amount'].number;
+        } else {
+            aggregatedTransactions[name].expenses += transaction['Expense Amount'].number;
+        }
+    });
+
+    // Now aggregatedTransactions object contains the aggregated data by unique names
+    return aggregatedTransactions;
+}

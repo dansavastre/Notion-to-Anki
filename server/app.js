@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const { updateSettings, getAllPageIds, getPageContent,
         getPage, sendPage, uploadFinanceCSV, proxyAnkiConnect, getCategories } = require('./routes/routes');
-const rateLimiter = require('./rateLimiter');
 const {join} = require("path");
 const csvParserRoute = require("csv-parser");
 

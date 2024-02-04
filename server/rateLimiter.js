@@ -31,4 +31,4 @@ class RateLimiter {
     }
 }
 
-module.exports = RateLimiter;
+module.exports = { RateLimiter };
