@@ -1,4 +1,9 @@
+const groceries = ["Albert Heijn", "Action", "Jumbo Supermarkt", "Thuisbezorgd.nl", "Flink", "Etos", "Gall & Gall"];
+const rent = "To Stichting Derdengelden Pactum Vastgoed";
+
+
 function getCategoriesId() {
+    console.log(localStorage.getItem('categoriesId'));
     return localStorage.getItem('categoriesId');
 }
 
@@ -34,14 +39,11 @@ async function parseAndSendToNotion() {
             const jsonData = csvJSON(csvText);
             console.log(jsonData);
 
-            props = convertJsonToNotionProperties(jsonData);
-            console.log("Props ", props);
-            for (const transaction of props) {
-                if (transaction.Name.title[0].text.content in groceries) {
-                    transaction.Category.relation[0].id = categories["Food & Groceries"];
-                }
-                console.log(transaction.Name.title[0].text.content);
-            }
+            const descriptions = Array.from(new Set(jsonData.map((x) => x['Description'])));
+            console.log(descriptions.sort());
+            // for(const transaction of jsonData) {
+            //
+            // }
 
         } catch (error) {
             console.error(error);
@@ -67,12 +69,13 @@ async function getAllPageIds(databaseId) {
 async function getCategories() {
     const response = await getAllPageIds(getCategoriesId());
     const pageIds = response.results.map(page => page.id);
-    console.log(pageIds);
+    console.log('props');
 
     let result = {};
     for (const pageid of pageIds) {
         const page = await getPage(pageid);
-        result[page.properties.Name.title[0].text.content] = pageId;
+        console.log('props: ', page.properties);
+        // result[page.properties.Name.title[0].text.content] = pageId;
     }
     return result;
 }
@@ -82,6 +85,7 @@ async function getPage(pageId) {
     const page = await response.json();
     const pageTitle = page.properties.Name.title[0]?.plain_text || 'Untitled';
     console.log(page);
+    return page;
 }
 
 async function addPage(databaseId, properties) {
