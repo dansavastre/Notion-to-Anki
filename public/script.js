@@ -188,8 +188,17 @@ async function sendToAnki(deckName, cardCount, flashcards) {
         console.log(`Sending flashcards to Deck: ${deckName}`);
         console.log('Flashcards to be sent:', flashcards);
 
+        // **** For testing ****
+        // const deckNames = ['Flashcards 1', 'Some other text Flashcards 2 some more text here'];
+        // *********************
+        // console.log('Existing decks: ', deckNames);
+        // console.log('Deck name: ', deckName);
+        // console.log(deckNames.some((name) => name.includes(deckName)));
+
+
         // Check if the deck exists
-        if (!deckNames.includes(deckName)) {
+        const deckExists = deckNames.some((name) => name.includes(deckName));
+        if (!deckExists) {
             // If the deck doesn't exist, create it
             await invoke('createDeck', 6, { deck: deckName });
             console.log(`Deck created: ${deckName}`);
@@ -258,6 +267,7 @@ async function updateServerSettings() {
 }
 
 async function getNotionPages() {
+    let pageProperties;
     try {
         // console.log(notionSecret);
         // console.log(databaseId);
@@ -316,7 +326,7 @@ async function generateFlashcards() {
         for (const pageId of selectedPageIds) {
             const flashcards = await getAllContent(pageId);
             props = await getPageProperties(pageId);
-            sendToAnki(props.pageTitle, props.cardCount, flashcards);
+            await sendToAnki(props.pageTitle, props.cardCount, flashcards);
         }
 
         alert('Flashcards sent to Anki successfully!');
