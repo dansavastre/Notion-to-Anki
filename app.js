@@ -5,6 +5,9 @@ const { NotionToMarkdown } = require("notion-to-md");
 require('dotenv').config();
 const cors = require('cors');
 
+const showdown = require('showdown'),
+    converter = new showdown.Converter();
+
 
 const app = express();
 const port = 3000;
@@ -28,7 +31,7 @@ async function getPage(pageId){
   const response = await notion.pages.retrieve({
     page_id: pageId
   });
-  console.log(response);
+  // console.log(response);
   return response;
 }
 
@@ -38,7 +41,7 @@ async function getAllPageIds(databaseId) {
   const response = await notion.databases.query({
     database_id: process.env.FLASHCARDS_DB,
   });
-  console.log(response.results);
+  // console.log(response.results);
   return response.results.map((page) => page.id);
 }
 
@@ -48,7 +51,11 @@ async function getPageContent(pageId) {
   const mdblocks = await n2m.pageToMarkdown(pageId, 2);
   // const mdString = n2m.toMarkdownString(mdblocks);
   // console.log(mdString.parent);
-  console.log("MD blocks: ", mdblocks);
+  // console.log("MD blocks: ", mdblocks);
+  // const text      = '# hello, markdown!',
+  // const html = converter.makeHtml(mdblocks);
+  // console.log("HTML: ", html);
+
 
   return mdblocks;
 }
@@ -91,11 +98,67 @@ app.get('/get-page-ids', async (req, res) => {
 });
 
 
+function notionBlocksToMarkdown(blocks, depth = 0) {
+    let markdown = '';
+
+    if (blocks.length === 0) {
+        return '';
+    }
+
+    blocks.forEach(block => {
+        switch (block.type) {
+            // case 'heading_1':
+            //     markdown += `${'\t'.repeat(depth)}# ${block.heading_1.text.map(t => t.plain_text).join('')}\n`;
+            //     break;
+            // case 'heading_2':
+            //     markdown += `${'\t'.repeat(depth)}## ${block.heading_2.text.map(t => t.plain_text).join('')}\n`;
+            //     break;
+            // case 'heading_3':
+            //     markdown += `${'\t'.repeat(depth)}### ${block.heading_3.text.map(t => t.plain_text).join('')}\n`;
+            //     break;
+            // case 'paragraph':
+            //     markdown += `${'\t'.repeat(depth)}${block.paragraph.text.map(t => t.plain_text).join('')}\n`;
+            //     break;
+            case 'bulleted_list_item':
+                markdown += `${'\t'.repeat(depth)}${block.parent}\n`;
+                break;
+            // Add cases for other block types as needed
+            default:
+                // Unsupported block type, just skip it
+                break;
+        }
+
+        if (block.children) {
+            markdown += notionBlocksToMarkdown(block.children, depth + 1);
+        }
+    });
+
+    return markdown;
+}
+
 app.get('/get-page-content/:pageId', async (req, res) => {
   try {
     const { pageId } = req.params;
     const content = await getPageContent(pageId);
-    res.send(content);
+
+    // const mdText = notionBlocksToMarkdown(content);
+    // console.log("MD: \n", mdText);
+    // console.log("HTML: \n", converter.makeHtml(mdText));
+
+    // console.log("Page content: ", content)
+    let flashcards = [];
+    for (let i = 0; i < content.length; i++) {
+        if(content[i].type === "toggle") {
+            const question = content[i].parent;
+            const answer = converter.makeHtml(notionBlocksToMarkdown(content[i].children));
+            // console.log("Question: ", question);
+            // console.log("Answer: ", answer);
+            flashcards.push({question, answer});
+        }
+    }
+    // console.log("Flashcards: ", flashcards);
+
+    res.send(flashcards);
   } catch (error) {
     console.error('Error fetching content:', error);
     res.status(500).json({ error: 'Internal Server Error', message: error.message, stack: error.stack });

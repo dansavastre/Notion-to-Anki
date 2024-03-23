@@ -20,7 +20,7 @@ function goToSettings() {
 }
 
 
-// -------------- Notion ------------------------------
+// -------------- Notion Interactions ------------------------------
 
 async function getAllPageIds() {
     try {
@@ -74,26 +74,74 @@ async function getAllContent(pageId) {
     try {
         // const pageId = document.getElementById('pageIdInput').value;
         const response = await fetch(`/get-page-content/${pageId}`);
-        const content = await response.json();
+        const flashcards = await response.json();
 
 
-        const flashcards = [];
-        for(let i= 0; i < content.length; i++) {
-            if (content[i].type === "toggle") {
-                const question = content[i].parent;
-                const answer = buildBulletedList(content[i].children)
-                flashcards.push({question, answer});
-            }
-        }
-        console.log("Flashcards: ", flashcards);
+        // const flashcards = [];
+        // for(let i= 0; i < content.length; i++) {
+        //     if (content[i].type === "toggle") {
+        //         const question = content[i].parent;
+        //         const answer = buildBulletedList(content[i].children)
+        //         flashcards.push({question, answer});
+        //     }
+        // }
+        // console.log("Flashcards: ", flashcards);
 
         // Get page properties (Title, cardCount)
-        const props = await getPageProperties(pageId);
+        // const props = await getPageProperties(pageId);
         return flashcards;
     } catch (error) {
         console.error('Error fetching content:', error);
     }
 }
+
+async function getNotionPages() {
+    let pageProperties;
+    try {
+        await updateServerSettings();
+
+        const notionPagesContainer = document.getElementById('notionPages');
+        notionPagesContainer.innerHTML = ''; // Clear existing content
+
+        const pageIds = await getAllPageIds();
+        console.log("Page ids: ", pageIds)
+
+        for (const pageId of pageIds) {
+            const row = document.createElement('tr');
+
+            // Checkbox cell
+            const checkboxCell = document.createElement('td');
+            checkboxCell.className = 'page-checkbox';
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = pageId;
+            checkboxCell.appendChild(checkbox);
+            row.appendChild(checkboxCell);
+
+            // Get page properties from notion
+            pageProperties = await getPageProperties(pageId);
+
+            // Page title cell
+            const titleCell = document.createElement('td');
+            titleCell.textContent = pageProperties.pageTitle;
+            row.appendChild(titleCell);
+
+            // Card count cell
+            const countCell = document.createElement('td');
+            countCell.textContent = pageProperties.cardCount;
+            row.appendChild(countCell);
+
+            document.getElementById('notionPages').appendChild(row);
+        }
+
+
+    } catch (error) {
+        console.error('Error getting Notion pages:', error);
+    }
+}
+
+
+// -------------- Helper functions --------------------------------
 
 function buildBulletedList(blocks, indentation = 0) {
     let result = '';
@@ -115,6 +163,21 @@ function buildBulletedList(blocks, indentation = 0) {
     return result;
 }
 
+function getSelectedPageIds() {
+    const selectedPageIds = [];
+
+    // Select all checkboxes with the class 'page-checkbox'
+    const checkboxes = document.querySelectorAll('.page-checkbox input[type="checkbox"]');
+
+    checkboxes.forEach((checkbox) => {
+        if (checkbox.checked) {
+            // If the checkbox is checked, add its id to the selectedPageIds array
+            selectedPageIds.push(checkbox.id);
+        }
+    });
+
+    return selectedPageIds;
+}
 
 // -------------- Anki --------------------------------
 const ANKI_CONNECT_ENDPOINT = '/anki-connect';
@@ -130,15 +193,6 @@ async function invoke(action, version, params = {}) {
         });
 
         const result = await response.json();
-
-        // Log the entire response for debugging
-        // console.log(`Anki Connect Response for '${action}':`, result);
-
-        // Check if the action is 'addNote' and log the note ID for debugging
-        // if (action === 'addNote') {
-        //     console.log(`Added note ID: ${result.result}`);
-        // }
-
         return result.result;
     } catch (error) {
         console.error(`Error invoking '${action}':`, error);
@@ -213,8 +267,8 @@ async function sendToAnki(deckName, cardCount, flashcards) {
         // Loop over flashcards and send them to Anki
         for (const flashcard of flashcards) {
             const { question, answer } = flashcard;
-            // let parsedAnswer = answer.replace("\n", "<br>");
-            // console.log("updated ans: ", formatText(answer));
+            // const formatedAnswer = null;
+            // console.log("updated ans: ", formatedAnswer);
 
             // Check if the question already exists in the deck
             if (!existingQuestions.includes(question)) {
@@ -224,7 +278,8 @@ async function sendToAnki(deckName, cardCount, flashcards) {
                     "modelName": 'Basic',
                     "fields": {
                         "Front": `${question}`,
-                        "Back": `${formatText(answer)}`,
+                        // "Back": `${formatText(answer)}`,
+                        "Back": `${answer}`
                     },
                 };
                 // console.log("Note: ", addNoteParams);
@@ -266,53 +321,6 @@ async function updateServerSettings() {
     }
 }
 
-async function getNotionPages() {
-    let pageProperties;
-    try {
-        // console.log(notionSecret);
-        // console.log(databaseId);
-        await updateServerSettings();
-
-        const notionPagesContainer = document.getElementById('notionPages');
-        notionPagesContainer.innerHTML = ''; // Clear existing content
-
-        const pageIds = await getAllPageIds();
-        console.log("Page ids: ", pageIds)
-
-        for (const pageId of pageIds) {
-            const row = document.createElement('tr');
-
-            // Checkbox cell
-            const checkboxCell = document.createElement('td');
-            checkboxCell.className = 'page-checkbox';
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.id = pageId;
-            checkboxCell.appendChild(checkbox);
-            row.appendChild(checkboxCell);
-
-            // Get page properties from notion
-            pageProperties = await getPageProperties(pageId);
-
-            // Page title cell
-            const titleCell = document.createElement('td');
-            titleCell.textContent = pageProperties.pageTitle;
-            row.appendChild(titleCell);
-
-            // Card count cell
-            const countCell = document.createElement('td');
-            countCell.textContent = pageProperties.cardCount;
-            row.appendChild(countCell);
-
-            document.getElementById('notionPages').appendChild(row);
-        }
-
-
-    } catch (error) {
-        console.error('Error getting Notion pages:', error);
-    }
-}
-
 async function generateFlashcards() {
     try {
         const selectedPageIds = getSelectedPageIds();
@@ -335,18 +343,3 @@ async function generateFlashcards() {
     }
 }
 
-function getSelectedPageIds() {
-    const selectedPageIds = [];
-
-    // Select all checkboxes with the class 'page-checkbox'
-    const checkboxes = document.querySelectorAll('.page-checkbox input[type="checkbox"]');
-
-    checkboxes.forEach((checkbox) => {
-        if (checkbox.checked) {
-            // If the checkbox is checked, add its id to the selectedPageIds array
-            selectedPageIds.push(checkbox.id);
-        }
-    });
-
-    return selectedPageIds;
-}
