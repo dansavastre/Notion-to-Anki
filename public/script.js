@@ -46,18 +46,18 @@ async function getPageProperties(pageId) {
         // Assume page.properties is the provided properties object
 
         // Extract Courses property
-        const coursesProperty = page.properties['📑 Courses'];
+        // const coursesProperty = page.properties['📑 Courses'];
         // const coursesValue = coursesProperty ? coursesProperty.rollup : null;
 
         // Extract Vak property
-        const vakProperty = page.properties.Vak;
+        // const vakProperty = page.properties.Vak;
         // const vakValue = vakProperty ? vakProperty.rollup : null;
 
 
         // Extract Courses
-        const coursesValue = coursesProperty ? coursesProperty.rollup.array : null;
+        // const coursesValue = coursesProperty ? coursesProperty.rollup.array : null;
         // Extract Vak
-        const vakValue = vakProperty ? vakProperty.rollup.array : null;
+        // const vakValue = vakProperty ? vakProperty.rollup.array : null;
 
         // Now you can use coursesValue and vakValue in your code
         // console.log('Courses:', coursesValue);
