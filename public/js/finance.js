@@ -39,11 +39,37 @@ async function parseAndSendToNotion() {
             const jsonData = csvJSON(csvText);
             console.log(jsonData);
 
-            const descriptions = Array.from(new Set(jsonData.map((x) => x['Description'])));
-            console.log(descriptions.sort());
-            // for(const transaction of jsonData) {
-            //
-            // }
+            // Transform JSON data to new structure
+            const transformedData = jsonData.map(item => {
+                return {
+                    Account: item['Product'],
+                    Date: item['Completed Date'],
+                    Description: item.Description,
+                    Amount: (parseFloat(item['Amount']) - parseFloat(item['Fee'])).toFixed(2),
+                    Currency: item.Currency,
+                    Category: item.Type
+                };
+            });
+
+            var fields = Object.keys(transformedData[0])
+            var replacer = function(key, value) { return value === null ? '' : value }
+            var csv = transformedData.map(function(row){
+                return fields.map(function(fieldName){
+                    return JSON.stringify(row[fieldName], replacer)
+                }).join(',')
+            })
+            csv.unshift(fields.join(',')) // add header column
+            csv = csv.join('\r\n');
+            console.log(csv)
+
+            // Create a Blob object with the CSV data
+            const blob = new Blob([csv], { type: 'text/csv' });
+
+            // Create a temporary link element
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = 'parsed_data.csv'; // File name
+            link.click();
 
         } catch (error) {
             console.error(error);
