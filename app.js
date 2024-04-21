@@ -28,36 +28,24 @@ app.use(cors());
 
 
 async function getPage(pageId){
-  const response = await notion.pages.retrieve({
-    page_id: pageId
-  });
-  // console.log(response);
-  return response;
+    return await notion.pages.retrieve({
+        page_id: pageId
+    });
 }
 
 
 // Function to get all page IDs in a database
 async function getAllPageIds(databaseId) {
-  const response = await notion.databases.query({
-    database_id: process.env.FLASHCARDS_DB,
-  });
-  // console.log(response.results);
-  return response.results.map((page) => page.id);
+    const response = await notion.databases.query({
+        database_id: process.env.FLASHCARDS_DB,
+    });
+    return response.results.map((page) => page.id);
 }
 
 
 // Function to get the content of a page by ID
 async function getPageContent(pageId) {
-  const mdblocks = await n2m.pageToMarkdown(pageId, 2);
-  // const mdString = n2m.toMarkdownString(mdblocks);
-  // console.log(mdString.parent);
-  // console.log("MD blocks: ", mdblocks);
-  // const text      = '# hello, markdown!',
-  // const html = converter.makeHtml(mdblocks);
-  // console.log("HTML: ", html);
-
-
-  return mdblocks;
+    return await n2m.pageToMarkdown(pageId, 2);
 }
 
 
@@ -107,22 +95,33 @@ function notionBlocksToMarkdown(blocks, depth = 0) {
 
     blocks.forEach(block => {
         switch (block.type) {
-            // case 'heading_1':
-            //     markdown += `${'\t'.repeat(depth)}# ${block.heading_1.text.map(t => t.plain_text).join('')}\n`;
-            //     break;
-            // case 'heading_2':
-            //     markdown += `${'\t'.repeat(depth)}## ${block.heading_2.text.map(t => t.plain_text).join('')}\n`;
-            //     break;
-            // case 'heading_3':
-            //     markdown += `${'\t'.repeat(depth)}### ${block.heading_3.text.map(t => t.plain_text).join('')}\n`;
-            //     break;
-            // case 'paragraph':
-            //     markdown += `${'\t'.repeat(depth)}${block.paragraph.text.map(t => t.plain_text).join('')}\n`;
-            //     break;
+            case 'heading_1':
+                markdown += `${block.parent}\n`;
+                break;
+            case 'heading_2':
+                markdown += `${block.parent}\n`;
+                break;
+            case 'heading_3':
+                markdown += `${block.parent}\n`;
+                break;
             case 'bulleted_list_item':
                 markdown += `${'\t'.repeat(depth)}${block.parent}\n`;
                 break;
-            // Add cases for other block types as needed
+            case 'numbered_list_item':
+                markdown += `${'\t'.repeat(depth)}${block.parent}\n`;
+                break;
+            case 'toggle':
+                markdown += `${'\t'.repeat(depth)}${block.parent}\n`;
+                break;
+            case 'paragraph':
+                markdown += `${'\t'.repeat(depth)}${block.parent}\n`;
+                break;
+            case 'quote':
+                markdown += `${'\t'.repeat(depth)}${block.parent}\n`;
+                break;
+            case 'to_do':
+                markdown += `${'\t'.repeat(depth)}${block.parent}\n`;
+                break;
             default:
                 // Unsupported block type, just skip it
                 break;

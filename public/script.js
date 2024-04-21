@@ -74,9 +74,6 @@ async function getAllContent(pageId) {
     try {
         // const pageId = document.getElementById('pageIdInput').value;
         const response = await fetch(`/get-page-content/${pageId}`);
-        const flashcards = await response.json();
-
-
         // const flashcards = [];
         // for(let i= 0; i < content.length; i++) {
         //     if (content[i].type === "toggle") {
@@ -89,7 +86,7 @@ async function getAllContent(pageId) {
 
         // Get page properties (Title, cardCount)
         // const props = await getPageProperties(pageId);
-        return flashcards;
+        return await response.json();
     } catch (error) {
         console.error('Error fetching content:', error);
     }
