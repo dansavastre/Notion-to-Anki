@@ -148,6 +148,11 @@ app.get('/get-page-content/:pageId', async (req, res) => {
     let flashcards = [];
     for (let i = 0; i < content.length; i++) {
         if(content[i].type === "toggle") {
+            // Skip empty toggles
+            if (content[i].parent === "") {
+                continue;
+            }
+
             const question = converter.makeHtml(content[i].parent);
             const answer = converter.makeHtml(notionBlocksToMarkdown(content[i].children));
             // console.log("Question: ", question);
