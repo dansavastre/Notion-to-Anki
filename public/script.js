@@ -1,3 +1,8 @@
+// -------------- Global Variables -----------------------
+
+let pageIds = [];
+let pageIndex = 0;
+
 // -------------- Get Variables -----------------------
 
 // Function to get Notion Secret from local storage
@@ -100,10 +105,52 @@ async function getNotionPages() {
         const notionPagesContainer = document.getElementById('notionPages');
         notionPagesContainer.innerHTML = ''; // Clear existing content
 
-        const pageIds = await getAllPageIds();
+        const page_ids = await getAllPageIds();
         console.log("Page ids: ", pageIds)
 
-        for (const pageId of pageIds) {
+        pageIds = page_ids;
+        loadMorePages();
+
+        // for (const pageId of pageIds) {
+        //     const row = document.createElement('tr');
+
+        //     // Checkbox cell
+        //     const checkboxCell = document.createElement('td');
+        //     checkboxCell.className = 'page-checkbox';
+        //     const checkbox = document.createElement('input');
+        //     checkbox.type = 'checkbox';
+        //     checkbox.id = pageId;
+        //     checkboxCell.appendChild(checkbox);
+        //     row.appendChild(checkboxCell);
+
+        //     // Get page properties from notion
+        //     pageProperties = await getPageProperties(pageId);
+
+        //     // Page title cell
+        //     const titleCell = document.createElement('td');
+        //     titleCell.textContent = pageProperties.pageTitle;
+        //     row.appendChild(titleCell);
+
+        //     // Card count cell
+        //     const countCell = document.createElement('td');
+        //     countCell.textContent = pageProperties.cardCount;
+        //     row.appendChild(countCell);
+
+        //     document.getElementById('notionPages').appendChild(row);
+        // }
+
+        // 
+
+
+    } catch (error) {
+        console.error('Error getting Notion pages:', error);
+    }
+}
+
+async function loadMorePages() {
+    for(let i = pageIndex; i < pageIds.length && i < pageIndex + 10; i++) {
+        const pageId = pageIds[i];
+
             const row = document.createElement('tr');
 
             // Checkbox cell
@@ -129,12 +176,8 @@ async function getNotionPages() {
             row.appendChild(countCell);
 
             document.getElementById('notionPages').appendChild(row);
-        }
-
-
-    } catch (error) {
-        console.error('Error getting Notion pages:', error);
     }
+    pageIndex += 10;
 }
 
 
