@@ -185,9 +185,6 @@ app.get('/get-page/:pageId', async (req, res) => {
 });
 
 
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-});
 
 
 app.post('/anki-connect', async(req, res) => {
