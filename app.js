@@ -11,6 +11,7 @@ const showdown = require('showdown'),
 
 const app = express();
 const port = 3000;
+const timeout = 300000; // 5 minutes
 
 let notion = new Client({
   auth: process.env.NOTION_SECRET,
@@ -24,7 +25,10 @@ app.use(express.static('public'));
 app.use(express.json());
 app.use(cors());
 
-
+const server = app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});
+server.setTimeout(timeout);
 
 
 async function getPage(pageId){
